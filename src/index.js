@@ -19,6 +19,9 @@ app.get('/', (req, res) => {
 // Auth rotalarını yükle: /api/auth/register, /api/auth/login
 app.use('/api/auth', authRoutes);
 
+// File rotaları (korunacak)
+app.use('/api/files', require('./routes/file'));
+
 // Sunucuyu başlat
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
