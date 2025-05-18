@@ -1,25 +1,34 @@
-// src/routes/file.js
-const express = require('express');
-const router  = express.Router();
-const auth    = require('../middleware/authMiddleware');
+const express   = require('express');
+const multer    = require('multer');
+const path      = require('path');
+const auth      = require('../middleware/authMiddleware');
+const fileCtrl  = require('../controllers/fileController');
 
-// Bu noktadan itibaren tüm /api/files rotaları JWT ile korunacak:
+const router = express.Router();
+
+// Multer config
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'),
+    filename:    (req, file, cb) => {
+        const unique = `${Date.now()}-${file.originalname}`;
+        cb(null, unique);
+    }
+});
+const upload = multer({ storage });
+
+// JWT koruması
 router.use(auth);
 
-// 1) Dosya yükleme (POST /api/files/upload)
-router.post('/upload', (req, res) => {
-    // ileride burada multer ile dosya yükleme kodu olacak
-    res.send('Upload handler’ı buraya gelecek');
-});
+// POST /api/files/upload
+router.post('/upload', upload.single('file'), fileCtrl.uploadFile);
 
-// 2) Listeleme (GET /api/files)
-router.get('/', (req, res) => {
-    res.send('List handler’ı buraya gelecek');
-});
+// GET  /api/files
+router.get('/', fileCtrl.listFiles);
 
-// 3) Silme (DELETE /api/files/:id)
-router.delete('/:id', (req, res) => {
-    res.send('Delete handler’ı buraya gelecek');
-});
+// DELETE /api/files/:id
+router.delete('/:id', fileCtrl.deleteFile);
+
+// GET /api/files/:id/download
+router.get('/:id/download', fileCtrl.downloadFile);
 
 module.exports = router;

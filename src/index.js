@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 });
 
 // Auth rotalarını yükle: /api/auth/register, /api/auth/login
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', require('./routes/auth'));
 
 // File rotaları (korunacak)
 app.use('/api/files', require('./routes/file'));
