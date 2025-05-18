@@ -1,19 +1,26 @@
-// src/index.js
-require('dotenv').config();
-const express   = require('express');
-const connectDB = require('./config/db');
-const authRoutes = require('./routes/auth');  // <-- burası
+require('dotenv').config();           // .env dosyasını yükler
+const express     = require('express');
+const connectDB   = require('./config/db');
+const authRoutes  = require('./routes/auth');
 
 const app = express();
-console.log('>> authRoutes type:', typeof authRoutes);
+
+// Gelen tüm JSON gövdelerini parse et
 app.use(express.json());
+
+// MongoDB bağlantısını başlat
 connectDB();
 
-// Health-check
-app.get('/', (req, res) => res.send('DocVault API çalışıyor!'));
+// Basit health-check endpoint
+app.get('/', (req, res) => {
+    res.send('DocVault API çalışıyor!');
+});
 
-// Burada mutlaka bir function ya da Router olmalı:
+// Auth rotalarını yükle: /api/auth/register, /api/auth/login
 app.use('/api/auth', authRoutes);
 
+// Sunucuyu başlat
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Sunucu ${PORT} portunda çalışıyor`));
+app.listen(PORT, () => {
+    console.log(`🚀 Sunucu ${PORT} portunda çalışıyor`);
+});
