@@ -37,20 +37,23 @@ exports.listFiles = async (req, res) => {
 /* ---------- SİL ---------- */
 exports.deleteFile = async (req, res) => {
     try {
+        // 1) Belgeyi al
         const file = await File.findOne({
             _id: req.params.id,
             uploadedBy: req.user.id
         });
         if (!file) return res.status(404).json({ msg: 'Dosya bulunamadı' });
 
-        /*  Dosya diskte yoksa (ENOENT) 500 fırlatma  */
+        // 2) Fiziksel dosyayı sil (varsa)
         try {
             fs.unlinkSync(file.path);
         } catch (err) {
-            if (err.code !== 'ENOENT') throw err;
+            if (err.code !== 'ENOENT') throw err; // dosya zaten yoksa yut
         }
 
-        await file.remove();
+        // 3) MongoDB kaydını sil
+        await File.deleteOne({ _id: file._id });   // <-- remove() yerine
+
         res.json({ msg: 'Silme başarılı' });
     } catch (err) {
         console.error('Delete error:', err);
