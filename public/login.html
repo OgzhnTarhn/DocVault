@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>DocVault – Giriş Yap</title>
+    <meta charset="utf-8">
+    <title>DocVault – Giriş</title>
 </head>
 <body>
-<h1>DocVault Giriş</h1>
+<h1>Giriş Yap</h1>
+
 <form id="login-form">
-    <label>
-        Kullanıcı Adı:<br>
-        <input type="text" id="username" required>
+    <label>Kullanıcı Adı:<br>
+        <input id="username" required>
     </label><br><br>
-    <label>
-        Şifre:<br>
-        <input type="password" id="password" required>
+    <label>Şifre:<br>
+        <input id="password" type="password" required>
     </label><br><br>
     <button type="submit">Giriş Yap</button>
 </form>
@@ -28,23 +27,20 @@
         const u = username.value.trim();
         const p = password.value;
 
-        msg.textContent = '';
-        try {
-            const r = await fetch('/api/auth/login', {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({ username:u, password:p })
-            });
-            const d = await r.json();
-            if (r.ok) {
-                localStorage.setItem('token', d.token);
-                location.href = 'files.html';
-            } else {
-                msg.style.color='red'; msg.textContent=d.msg;
-            }
-        } catch { msg.style.color='red'; msg.textContent='Sunucuya ulaşılamadı'; }
+        const res = await fetch('/api/auth/login', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ username:u, password:p })
+        });
+        const d = await res.json();
+        if (res.ok) {
+            localStorage.setItem('token', d.token);
+            location.href = 'files.html';
+        } else {
+            msg.style.color='red';
+            msg.textContent = d.msg;
+        }
     });
 </script>
-
 </body>
 </html>

@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>DocVault – Kayıt Ol</title>
+    <meta charset="utf-8">
+    <title>DocVault – Kayıt</title>
 </head>
 <body>
-<h1>DocVault Kayıt</h1>
+<h1>Kayıt Ol</h1>
+
 <form id="register-form">
-    <label>
-        Kullanıcı Adı:<br>
-        <input type="text" id="username" required>
+    <label>Kullanıcı Adı:<br>
+        <input id="username" required>
     </label><br><br>
-    <label>
-        Şifre:<br>
-        <input type="password" id="password" required>
+    <label>Şifre:<br>
+        <input id="password" type="password" required>
     </label><br><br>
     <button type="submit">Kayıt Ol</button>
 </form>
@@ -31,23 +30,20 @@
         const u = username.value.trim();
         const p = password.value;
 
-        msg.style.color = 'red';
-        if (!USER_RE.test(u))  return msg.textContent = 'Kullanıcı adı 3-20 harf/rakam olmalı';
-        if (!PASS_RE.test(p))  return msg.textContent = 'Şifre ≥8, 1 büyük, 1 küçük harf & 1 rakam içermeli';
+        msg.style.color='red';
+        if (!USER_RE.test(u))  return msg.textContent='Kullanıcı adı 3-20 harf/rakam olmalı';
+        if (!PASS_RE.test(p))  return msg.textContent='Şifre ≥8, 1 büyük, 1 küçük harf ve 1 rakam içermeli';
 
-        try {
-            const r = await fetch('/api/auth/register', {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({ username:u, password:p })
-            });
-            const d = await r.json();
-            msg.style.color = r.ok ? 'green' : 'red';
-            msg.textContent = d.msg;
-            if (r.ok) setTimeout(()=>location.href='login.html',1500);
-        } catch { msg.textContent='Sunucuya ulaşılamadı'; }
+        const res = await fetch('/api/auth/register', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ username:u, password:p })
+        });
+        const d = await res.json();
+        msg.style.color = res.ok ? 'green':'red';
+        msg.textContent = d.msg;
+        if (res.ok) setTimeout(()=>location.href='login.html',1500);
     });
 </script>
-
 </body>
 </html>

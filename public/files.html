@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <title>DocVault – Dosyalarım</title>
 </head>
 <body>
@@ -9,9 +9,9 @@
 <button id="logout">Çıkış Yap</button>
 <hr>
 
-<h2>Yeni Dosya Yükle</h2>
+<h2>Dosya Yükle</h2>
 <form id="upload-form">
-  <input type="file" id="file-input" accept=".pdf,.png,.jpg" required>
+  <input id="file-input" type="file" accept=".pdf,.png,.jpg" required>
   <button type="submit">Yükle</button>
 </form>
 <p id="upload-msg"></p>
@@ -19,92 +19,62 @@
 <hr>
 <h2>Yüklenen Dosyalar</h2>
 <table border="1" id="files-table">
-  <thead>
-  <tr>
-    <th>Dosya Adı</th>
-    <th>Yükleme Zamanı</th>
-    <th>İşlemler</th>
-  </tr>
-  </thead>
+  <thead><tr><th>Dosya</th><th>Tarih</th><th>İşlem</th></tr></thead>
   <tbody></tbody>
 </table>
 <p id="list-msg"></p>
 
 <script>
   const token = localStorage.getItem('token');
-  if (!token) {
-    alert('Önce giriş yapmanız gerekiyor!');
-    location.href = 'login.html';
-  }
+  if (!token) { location.href='login.html'; }
 
-  document.getElementById('logout').onclick = () => {
-    localStorage.removeItem('token');
-    location.href = 'login.html';
-  };
+  logout.onclick = () => { localStorage.removeItem('token'); location.href='login.html'; };
 
-  async function listFiles() {
-    try {
-      const res = await fetch('/api/files', {
-        headers: { Authorization: 'Bearer ' + token }
-      });
-      if (!res.ok) throw new Error();
-      const files = await res.json();
-      const tbody = document.querySelector('#files-table tbody');
-      tbody.innerHTML = '';
-      files.forEach(f => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+  async function listFiles(){
+    const res = await fetch('/api/files', { headers:{Authorization:'Bearer '+token} });
+    if(!res.ok) return list_msg.textContent='Listeleme başarısız';
+    const files = await res.json(), tbody = document.querySelector('#files-table tbody');
+    tbody.innerHTML='';
+    files.forEach(f=>{
+      tbody.insertAdjacentHTML('beforeend',`
+          <tr>
             <td>${f.originalName}</td>
             <td>${new Date(f.createdAt).toLocaleString()}</td>
             <td>
               <button data-id="${f._id}" class="dl">İndir</button>
               <button data-id="${f._id}" class="del">Sil</button>
-            </td>`;
-        tbody.appendChild(tr);
-      });
-    } catch {
-      document.getElementById('list-msg').textContent = 'Listeleme başarısız';
-    }
+            </td>
+          </tr>`);
+    });
   }
 
-  document.querySelector('#files-table tbody').addEventListener('click', async e => {
-    if (e.target.matches('.dl')) {
-      const id = e.target.dataset.id;
-      window.location = `/api/files/${id}/download?token=${token}`;
-    } else if (e.target.matches('.del')) {
-      const id = e.target.dataset.id;
-      if (!confirm('Silinsin mi?')) return;
-      const res = await fetch(`/api/files/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: 'Bearer ' + token }
-      });
-      if (res.ok) listFiles();
-    }
-  });
-
-  document.getElementById('upload-form').addEventListener('submit', async e => {
+  upload_form.addEventListener('submit', async e=>{
     e.preventDefault();
-    const fileInput = document.getElementById('file-input');
-    const formData  = new FormData();
-    formData.append('file', fileInput.files[0]);
-    try {
-      const res  = await fetch('/api/files/upload', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token },
-        body: formData
+    const fd = new FormData(); fd.append('file', file_input.files[0]);
+    const res = await fetch('/api/files/upload', {
+      method:'POST',
+      headers:{ Authorization:'Bearer '+token },
+      body: fd
+    });
+    const d = await res.json();
+    upload_msg.textContent = d.msg;
+    if(res.ok){ file_input.value=''; listFiles(); }
+  });
+
+  files_table.addEventListener('click', async e=>{
+    const id = e.target.dataset.id; if(!id) return;
+    if(e.target.classList.contains('dl')){
+      window.location = `/api/files/${id}/download?token=${token}`;
+    }
+    if(e.target.classList.contains('del') && confirm('Silinsin mi?')){
+      const res = await fetch(`/api/files/${id}`, {
+        method:'DELETE',
+        headers:{ Authorization:'Bearer '+token }
       });
-      const data = await res.json();
-      document.getElementById('upload-msg').textContent = data.msg;
-      if (res.ok) {
-        fileInput.value = '';
-        listFiles();
-      }
-    } catch {
-      document.getElementById('upload-msg').textContent = 'Yükleme başarısız';
+      if(res.ok) listFiles();
     }
   });
 
-  // Sayfa yüklendiğinde dosyaları listele
   listFiles();
 </script>
 </body>
