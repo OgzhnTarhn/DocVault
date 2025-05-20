@@ -7,25 +7,45 @@
 <body>
 <h1>DocVault Kayıt</h1>
 <form id="register-form">
-    <label>Kullanıcı Adı:<br>
+    <label>
+        Kullanıcı Adı:<br>
         <input type="text" id="username" required>
     </label><br><br>
-    <label>Şifre:<br>
+    <label>
+        Şifre:<br>
         <input type="password" id="password" required>
     </label><br><br>
     <button type="submit">Kayıt Ol</button>
 </form>
-<p id="msg"></p>                <!-- burayı “message” değil “msg” yaptık -->
+<p id="msg"></p>
 <p>Zaten hesabın var mı? <a href="login.html">Giriş Yap</a></p>
 
 <script>
+    // Eğer zaten login varsa doğrudan dosyalar sayfasına yönlendir
+    if (localStorage.getItem('token')) {
+        location.href = 'files.html';
+    }
+    console.log('🟢 Register script yüklendi');
+
     const form = document.getElementById('register-form');
-    const msg  = document.getElementById('msg');  // “msg” olarak aldık
+    const msg  = document.getElementById('msg');
 
     form.addEventListener('submit', async e => {
+        console.log('🔔 Register butonuna basıldı');
         e.preventDefault();
-        const username = form.username.value.trim();
-        const password = form.password.value;
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+            msg.style.color = 'red';
+            msg.textContent = 'Kullanıcı adı ve şifre gerekli';
+            return;
+        }
+        if (password.length < 6) {
+            msg.style.color = 'red';
+            msg.textContent = 'Şifre en az 6 karakter olmalı';
+            return;
+        }
 
         try {
             const res  = await fetch('/api/auth/register', {
@@ -44,9 +64,9 @@
                 msg.textContent = data.msg;
             }
         } catch (err) {
+            console.error(err);
             msg.style.color = 'red';
             msg.textContent = 'Sunucuya ulaşılamadı';
-            console.error(err);
         }
     });
 </script>

@@ -32,14 +32,16 @@
 
 <script>
   const token = localStorage.getItem('token');
-  if (!token) location.href = 'login.html';
+  if (!token) {
+    alert('Önce giriş yapmanız gerekiyor!');
+    location.href = 'login.html';
+  }
 
   document.getElementById('logout').onclick = () => {
     localStorage.removeItem('token');
     location.href = 'login.html';
   };
 
-  // Listele
   async function listFiles() {
     try {
       const res = await fetch('/api/files', {
@@ -65,7 +67,6 @@
     }
   }
 
-  // İndirme ve silme delegasyonu
   document.querySelector('#files-table tbody').addEventListener('click', async e => {
     if (e.target.matches('.dl')) {
       const id = e.target.dataset.id;
@@ -81,14 +82,13 @@
     }
   });
 
-  // Upload
   document.getElementById('upload-form').addEventListener('submit', async e => {
     e.preventDefault();
     const fileInput = document.getElementById('file-input');
     const formData  = new FormData();
     formData.append('file', fileInput.files[0]);
     try {
-      const res = await fetch('/api/files/upload', {
+      const res  = await fetch('/api/files/upload', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token },
         body: formData

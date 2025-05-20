@@ -4,6 +4,7 @@ const fs   = require('fs');
 exports.uploadFile = async (req, res) => {
     if (!req.file) return res.status(400).json({ msg: 'Dosya bulunamadı' });
     const { filename, originalname, mimetype, size, path } = req.file;
+
     try {
         const file = new File({
             filename,
