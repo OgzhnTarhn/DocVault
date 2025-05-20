@@ -1,42 +1,85 @@
-const token=localStorage.getItem('token');
-if(!token) location.href='login.html';
+/* -------- DOM elemanları -------- */
+const logout_btn  = document.getElementById('logout');
+const upload_form = document.getElementById('upload-form');
+const file_input  = document.getElementById('file-input');
+const upload_msg  = document.getElementById('upload-msg');
+const files_table = document.getElementById('files-table');
+const list_msg    = document.getElementById('list-msg');
 
-logout.onclick=()=>{ localStorage.removeItem('token'); location.href='login.html'; };
+/* -------- Token kontrolü -------- */
+const token = localStorage.getItem('token');
+if (!token) location.href = 'login.html';
 
-async function list(){
-    const r=await fetch('/api/files',{headers:{Authorization:'Bearer '+token}});
-    if(!r.ok) return list_msg.textContent='Listeleme başarısız';
-    const f=await r.json(), tbody=document.querySelector('#files-table tbody');
-    tbody.innerHTML='';
-    f.forEach(x=>{
-        tbody.insertAdjacentHTML('beforeend',`
-      <tr>
-        <td>${x.originalName}</td>
-        <td>${new Date(x.createdAt).toLocaleString()}</td>
-        <td class="text-end">
-          <button data-id="${x._id}" class="btn btn-sm btn-outline-primary dl">İndir</button>
-          <button data-id="${x._id}" class="btn btn-sm btn-outline-danger del">Sil</button>
-        </td>
-      </tr>`);
-    });
+/* -------- Çıkış -------- */
+logout_btn.onclick = () => {
+    localStorage.removeItem('token');
+    location.href = 'login.html';
+};
+
+/* -------- Dosya listesini getir -------- */
+async function listFiles() {
+    try {
+        const res = await fetch('/api/files', {
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        if (!res.ok) throw new Error('liste');
+        const arr = await res.json();
+
+        const tbody = files_table.querySelector('tbody');
+        tbody.innerHTML = '';
+        arr.forEach(f => {
+            tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${f.originalName}</td>
+          <td>${new Date(f.createdAt).toLocaleString()}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary dl" data-id="${f._id}">İndir</button>
+            <button class="btn btn-sm btn-outline-danger del" data-id="${f._id}">Sil</button>
+          </td>
+        </tr>`);
+        });
+    } catch {
+        list_msg.textContent = 'Listeleme başarısız';
+    }
 }
 
-upload_form.addEventListener('submit',async e=>{
+/* -------- Dosya yükle -------- */
+upload_form.addEventListener('submit', async e => {
     e.preventDefault();
-    const fd=new FormData(); fd.append('file',file_input.files[0]);
-    const r=await fetch('/api/files/upload',{method:'POST',headers:{Authorization:'Bearer '+token},body:fd});
-    const d=await r.json(); upload_msg.textContent=d.msg;
-    if(r.ok){ file_input.value=''; list(); }
-});
+    const fd = new FormData();
+    fd.append('file', file_input.files[0]);
 
-files_table.addEventListener('click',async e=>{
-    const id=e.target.dataset.id; if(!id) return;
-    if(e.target.classList.contains('dl')){
-        window.location=`/api/files/${id}/download?token=${token}`;
-    } else if(e.target.classList.contains('del') && confirm('Silinsin mi?')){
-        const r=await fetch(`/api/files/${id}`,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
-        if(r.ok) list();
+    const res = await fetch('/api/files/upload', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+        body: fd
+    });
+    const d = await res.json();
+    upload_msg.textContent = d.msg;
+    if (res.ok) {
+        file_input.value = '';
+        listFiles();
     }
 });
 
-list();
+/* -------- İndir / Sil -------- */
+files_table.addEventListener('click', async e => {
+    const id = e.target.dataset.id;
+    if (!id) return;
+
+    if (e.target.classList.contains('dl')) {          // İndir
+        window.location = `/api/files/${id}/download?token=${token}`;
+    }
+
+    if (e.target.classList.contains('del')) {         // Sil
+        if (!confirm('Silmek istediğinize emin misiniz?')) return;
+        await fetch(`/api/files/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        listFiles();
+    }
+});
+
+/* -------- Başlangıç -------- */
+listFiles();

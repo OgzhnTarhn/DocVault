@@ -1,10 +1,11 @@
 const File = require('../models/File');
 const fs   = require('fs');
 
+/* ---------- YÜKLE ---------- */
 exports.uploadFile = async (req, res) => {
     if (!req.file) return res.status(400).json({ msg: 'Dosya bulunamadı' });
-    const { filename, originalname, mimetype, size, path } = req.file;
 
+    const { filename, originalname, mimetype, size, path } = req.file;
     try {
         const file = new File({
             filename,
@@ -22,6 +23,7 @@ exports.uploadFile = async (req, res) => {
     }
 };
 
+/* ---------- LİSTELE ---------- */
 exports.listFiles = async (req, res) => {
     try {
         const files = await File.find({ uploadedBy: req.user.id }).select('-path');
@@ -32,11 +34,22 @@ exports.listFiles = async (req, res) => {
     }
 };
 
+/* ---------- SİL ---------- */
 exports.deleteFile = async (req, res) => {
     try {
-        const file = await File.findOne({ _id: req.params.id, uploadedBy: req.user.id });
+        const file = await File.findOne({
+            _id: req.params.id,
+            uploadedBy: req.user.id
+        });
         if (!file) return res.status(404).json({ msg: 'Dosya bulunamadı' });
-        fs.unlinkSync(file.path);
+
+        /*  Dosya diskte yoksa (ENOENT) 500 fırlatma  */
+        try {
+            fs.unlinkSync(file.path);
+        } catch (err) {
+            if (err.code !== 'ENOENT') throw err;
+        }
+
         await file.remove();
         res.json({ msg: 'Silme başarılı' });
     } catch (err) {
@@ -45,9 +58,13 @@ exports.deleteFile = async (req, res) => {
     }
 };
 
+/* ---------- İNDİR ---------- */
 exports.downloadFile = async (req, res) => {
     try {
-        const file = await File.findOne({ _id: req.params.id, uploadedBy: req.user.id });
+        const file = await File.findOne({
+            _id: req.params.id,
+            uploadedBy: req.user.id
+        });
         if (!file) return res.status(404).json({ msg: 'Dosya bulunamadı' });
         res.download(file.path, file.originalName);
     } catch (err) {
