@@ -1,81 +1,30 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!DOCTYPE html><html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <title>DocVault – Dosyalarım</title>
-</head>
-<body>
-<h1>Dosyalarım</h1>
-<button id="logout">Çıkış Yap</button>
-<hr>
+  <meta charset="utf-8"><title>DocVault • Dosyalarım</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="_shared.css">
+</head><body class="container py-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Dosyalarım</h1>
+  <button id="logout" class="btn btn-outline-secondary">Çıkış</button>
+</div>
 
-<h2>Dosya Yükle</h2>
-<form id="upload-form">
-  <input id="file-input" type="file" accept=".pdf,.png,.jpg" required>
-  <button type="submit">Yükle</button>
-</form>
-<p id="upload-msg"></p>
+<div class="card shadow mb-4 p-3">
+  <h5>Yeni Dosya Yükle</h5>
+  <form id="upload-form" class="row g-2">
+    <div class="col"><input id="file-input" type="file" class="form-control" accept=".pdf,.png,.jpg" required></div>
+    <div class="col-auto"><button class="btn btn-primary">Yükle</button></div>
+  </form>
+  <p id="upload-msg" class="mt-2"></p>
+</div>
 
-<hr>
-<h2>Yüklenen Dosyalar</h2>
-<table border="1" id="files-table">
-  <thead><tr><th>Dosya</th><th>Tarih</th><th>İşlem</th></tr></thead>
-  <tbody></tbody>
-</table>
-<p id="list-msg"></p>
-
-<script>
-  const token = localStorage.getItem('token');
-  if (!token) { location.href='login.html'; }
-
-  logout.onclick = () => { localStorage.removeItem('token'); location.href='login.html'; };
-
-  async function listFiles(){
-    const res = await fetch('/api/files', { headers:{Authorization:'Bearer '+token} });
-    if(!res.ok) return list_msg.textContent='Listeleme başarısız';
-    const files = await res.json(), tbody = document.querySelector('#files-table tbody');
-    tbody.innerHTML='';
-    files.forEach(f=>{
-      tbody.insertAdjacentHTML('beforeend',`
-          <tr>
-            <td>${f.originalName}</td>
-            <td>${new Date(f.createdAt).toLocaleString()}</td>
-            <td>
-              <button data-id="${f._id}" class="dl">İndir</button>
-              <button data-id="${f._id}" class="del">Sil</button>
-            </td>
-          </tr>`);
-    });
-  }
-
-  upload_form.addEventListener('submit', async e=>{
-    e.preventDefault();
-    const fd = new FormData(); fd.append('file', file_input.files[0]);
-    const res = await fetch('/api/files/upload', {
-      method:'POST',
-      headers:{ Authorization:'Bearer '+token },
-      body: fd
-    });
-    const d = await res.json();
-    upload_msg.textContent = d.msg;
-    if(res.ok){ file_input.value=''; listFiles(); }
-  });
-
-  files_table.addEventListener('click', async e=>{
-    const id = e.target.dataset.id; if(!id) return;
-    if(e.target.classList.contains('dl')){
-      window.location = `/api/files/${id}/download?token=${token}`;
-    }
-    if(e.target.classList.contains('del') && confirm('Silinsin mi?')){
-      const res = await fetch(`/api/files/${id}`, {
-        method:'DELETE',
-        headers:{ Authorization:'Bearer '+token }
-      });
-      if(res.ok) listFiles();
-    }
-  });
-
-  listFiles();
-</script>
-</body>
-</html>
+<div class="card shadow p-3">
+  <h5>Yüklenen Dosyalar</h5>
+  <table class="table table-sm align-middle mt-2" id="files-table">
+    <thead><tr><th>Dosya</th><th>Tarih</th><th class="text-end">İşlem</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p id="list-msg" class="mt-2"></p>
+</div>
+<script src="js/files.js"></script>
+</body></html>

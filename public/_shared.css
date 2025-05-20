@@ -1,0 +1,7 @@
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto;
+    background:#f5f6fa}
+h1{margin-bottom:1rem}
+.card{border-radius:1rem}
+.btn-primary{background:#6c5ce7;border:none}
+.btn-primary:hover{background:#5947c1}
+.table thead{background:#dfe6fd}
