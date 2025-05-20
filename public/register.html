@@ -21,54 +21,33 @@
 <p>Zaten hesabın var mı? <a href="login.html">Giriş Yap</a></p>
 
 <script>
-    // Eğer zaten login varsa doğrudan dosyalar sayfasına yönlendir
-    if (localStorage.getItem('token')) {
-        location.href = 'files.html';
-    }
-    console.log('🟢 Register script yüklendi');
+    if (localStorage.getItem('token')) location.href = 'files.html';
 
-    const form = document.getElementById('register-form');
-    const msg  = document.getElementById('msg');
+    const USER_RE = /^[a-zA-Z0-9]{3,20}$/;
+    const PASS_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-    form.addEventListener('submit', async e => {
-        console.log('🔔 Register butonuna basıldı');
+    document.getElementById('register-form').addEventListener('submit', async e => {
         e.preventDefault();
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
+        const u = username.value.trim();
+        const p = password.value;
 
-        if (!username || !password) {
-            msg.style.color = 'red';
-            msg.textContent = 'Kullanıcı adı ve şifre gerekli';
-            return;
-        }
-        if (password.length < 6) {
-            msg.style.color = 'red';
-            msg.textContent = 'Şifre en az 6 karakter olmalı';
-            return;
-        }
+        msg.style.color = 'red';
+        if (!USER_RE.test(u))  return msg.textContent = 'Kullanıcı adı 3-20 harf/rakam olmalı';
+        if (!PASS_RE.test(p))  return msg.textContent = 'Şifre ≥8, 1 büyük, 1 küçük harf & 1 rakam içermeli';
 
         try {
-            const res  = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+            const r = await fetch('/api/auth/register', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ username:u, password:p })
             });
-            const data = await res.json();
-
-            if (res.ok) {
-                msg.style.color = 'green';
-                msg.textContent = data.msg;
-                setTimeout(() => location.href = 'login.html', 1500);
-            } else {
-                msg.style.color = 'red';
-                msg.textContent = data.msg;
-            }
-        } catch (err) {
-            console.error(err);
-            msg.style.color = 'red';
-            msg.textContent = 'Sunucuya ulaşılamadı';
-        }
+            const d = await r.json();
+            msg.style.color = r.ok ? 'green' : 'red';
+            msg.textContent = d.msg;
+            if (r.ok) setTimeout(()=>location.href='login.html',1500);
+        } catch { msg.textContent='Sunucuya ulaşılamadı'; }
     });
 </script>
+
 </body>
 </html>

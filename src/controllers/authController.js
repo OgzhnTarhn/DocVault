@@ -2,55 +2,45 @@ const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
 const User   = require('../models/User');
 
-exports.register = async (req, res) => {
-    console.log('🔴 REGISTER BODY:', req.body);
-    const { username, password } = req.body;
+// REGEX’ler
+const USER_RE = /^[a-zA-Z0-9]{3,20}$/;
+const PASS_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-    // Validation
-    if (!username || !password) {
-        return res.status(400).json({ msg: 'Kullanıcı adı ve şifre gerekli' });
-    }
-    if (password.length < 6) {
-        return res.status(400).json({ msg: 'Şifre en az 6 karakter olmalı' });
-    }
+exports.register = async (req, res) => {
+    const { username = '', password = '' } = req.body;
+
+    // ► VALIDATION
+    if (!USER_RE.test(username))
+        return res.status(400).json({ msg: 'Kullanıcı adı 3-20 harf/rakam olmalı' });
+    if (!PASS_RE.test(password))
+        return res.status(400).json({ msg: 'Şifre ≥8, 1 büyük, 1 küçük harf ve 1 rakam içermeli' });
 
     try {
-        const existing = await User.findOne({ username });
-        if (existing) {
+        if (await User.findOne({ username }))
             return res.status(400).json({ msg: 'Bu kullanıcı adı zaten alınmış' });
-        }
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-        const user = new User({ username, password: hash });
-        await user.save();
+
+        const hash = await bcrypt.hash(password, 10);
+        await new User({ username, password: hash }).save();
         return res.status(201).json({ msg: 'Kayıt başarılı' });
     } catch (err) {
-        console.error('Register error:', err);
+        console.error(err);
         return res.status(500).json({ msg: 'Sunucu hatası' });
     }
 };
 
 exports.login = async (req, res) => {
-    console.log('🔴 LOGIN BODY:', req.body);
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-        return res.status(400).json({ msg: 'Kullanıcı adı ve şifre gerekli' });
-    }
-
+    const { username = '', password = '' } = req.body;
     try {
         const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(400).json({ msg: 'Geçersiz kullanıcı adı veya şifre' });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ msg: 'Geçersiz kullanıcı adı veya şifre' });
-        }
+        if (!user) return res.status(400).json({ msg: 'Geçersiz kullanıcı adı/şifre' });
+
+        const ok = await bcrypt.compare(password, user.password);
+        if (!ok)  return res.status(400).json({ msg: 'Geçersiz kullanıcı adı/şifre' });
+
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         return res.json({ token });
     } catch (err) {
-        console.error('Login error:', err);
+        console.error(err);
         return res.status(500).json({ msg: 'Sunucu hatası' });
     }
 };
