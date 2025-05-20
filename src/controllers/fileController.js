@@ -75,3 +75,31 @@ exports.downloadFile = async (req, res) => {
         res.status(500).json({ msg: 'Sunucu hatası' });
     }
 };
+
+exports.uploadFile = async (req, res) => {
+    if (!req.file) return res.status(400).json({ msg: 'Dosya bulunamadı' });
+
+    const { filename, originalname, mimetype, size, path } = req.file;
+    const newName = req.body.newName?.trim();
+
+    // Sunucuda saklanacak ad: kullanıcı verdi + orijinal uzantı veya orijinal ad
+    const ext       = originalname.substring(originalname.lastIndexOf('.'));
+    const finalName = newName ? `${newName}${ext}` : originalname;
+
+    try {
+        const file = new File({
+            filename,
+            originalName: finalName,
+            mimetype,
+            size,
+            path,
+            uploadedBy: req.user.id
+        });
+        await file.save();
+        res.status(201).json({ msg: 'Yükleme başarılı', fileId: file._id });
+    } catch (err) {
+        console.error('Upload error:', err);
+        res.status(500).json({ msg: 'Sunucu hatası' });
+    }
+};
+
