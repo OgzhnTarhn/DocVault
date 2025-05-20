@@ -1,31 +1,26 @@
-require('dotenv').config();           // .env dosyasını yükler
-const express     = require('express');
-const connectDB   = require('./config/db');
-const authRoutes  = require('./routes/auth');
-const path = require('path');
+require('dotenv').config();
+const express = require('express');
+const path    = require('path');
+const connectDB = require('./config/db');
 
 const app = express();
-
-// Gelen tüm JSON gövdelerini parse et
 app.use(express.json());
-// public klasörünü statik olarak sun:
-app.use(express.static(path.join(__dirname, '..', 'public')));
-// MongoDB bağlantısını başlat
+
+// 1️⃣ public klasöründeki dosyaları sun
+app.use(express.static(path.join(__dirname, '../public')));
+
+// 2️⃣ MongoDB’ye bağlan
 connectDB();
 
-// Basit health-check endpoint
-app.get('/', (req, res) => {
-    res.send('DocVault API çalışıyor!');
-});
-
-// Auth rotalarını yükle: /api/auth/register, /api/auth/login
-app.use('/api/auth', require('./routes/auth'));
-
-// File rotaları (korunacak)
+// 3️⃣ API rotaları
+app.use('/api/auth',  require('./routes/auth'));
 app.use('/api/files', require('./routes/file'));
 
-// Sunucuyu başlat
+// 4️⃣ Herhangi başka bir GET isteği register/login/files dosyalarına yönlendirilebilir
+//    (opsiyonel, SPA ise)
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../public/index.html'));
+// });
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    console.log(`🚀 Sunucu ${PORT} portunda çalışıyor`);
-});
+app.listen(PORT, () => console.log(`🚀 Sunucu ${PORT} portunda çalışıyor`));

@@ -15,24 +15,26 @@
     </label><br><br>
     <button type="submit">Kayıt Ol</button>
 </form>
-<p id="msg"></p>
+<p id="msg"></p>                <!-- burayı “message” değil “msg” yaptık -->
 <p>Zaten hesabın var mı? <a href="login.html">Giriş Yap</a></p>
 
 <script>
     const form = document.getElementById('register-form');
-    const msg  = document.getElementById('msg');
+    const msg  = document.getElementById('msg');  // “msg” olarak aldık
 
     form.addEventListener('submit', async e => {
         e.preventDefault();
         const username = form.username.value.trim();
         const password = form.password.value;
+
         try {
-            const res = await fetch('/api/auth/register', {
+            const res  = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
             const data = await res.json();
+
             if (res.ok) {
                 msg.style.color = 'green';
                 msg.textContent = data.msg;
@@ -41,9 +43,10 @@
                 msg.style.color = 'red';
                 msg.textContent = data.msg;
             }
-        } catch {
+        } catch (err) {
             msg.style.color = 'red';
             msg.textContent = 'Sunucuya ulaşılamadı';
+            console.error(err);
         }
     });
 </script>
