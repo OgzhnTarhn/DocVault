@@ -67,7 +67,7 @@ DocVault/
 
 ```bash
 # clone & install
-git clone https://github.com/yourname/docvault.git
+git clone https://github.com/OgzhnTarhn/DocVault.git
 cd docvault && npm install
 
 # configure
