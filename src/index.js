@@ -2,12 +2,14 @@ require('dotenv').config();           // .env dosyasını yükler
 const express     = require('express');
 const connectDB   = require('./config/db');
 const authRoutes  = require('./routes/auth');
+const path = require('path');
 
 const app = express();
 
 // Gelen tüm JSON gövdelerini parse et
 app.use(express.json());
-
+// public klasörünü statik olarak sun:
+app.use(express.static(path.join(__dirname, '..', 'public')));
 // MongoDB bağlantısını başlat
 connectDB();
 

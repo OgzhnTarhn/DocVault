@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>DocVault – Giriş Yap</title>
+</head>
+<body>
+<h1>DocVault Giriş</h1>
+<form id="login-form">
+    <label>Kullanıcı Adı:<br>
+        <input type="text" id="username" required>
+    </label><br><br>
+    <label>Şifre:<br>
+        <input type="password" id="password" required>
+    </label><br><br>
+    <button type="submit">Giriş Yap</button>
+</form>
+<p id="msg"></p>
+<p>Hesabın yok mu? <a href="register.html">Kayıt Ol</a></p>
+
+<script>
+    const form = document.getElementById('login-form');
+    const msg  = document.getElementById('msg');
+
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const username = form.username.value.trim();
+        const password = form.password.value;
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('token', data.token);
+                location.href = 'files.html';
+            } else {
+                msg.style.color = 'red';
+                msg.textContent = data.msg;
+            }
+        } catch {
+            msg.style.color = 'red';
+            msg.textContent = 'Sunucuya ulaşılamadı';
+        }
+    });
+</script>
+</body>
+</html>
